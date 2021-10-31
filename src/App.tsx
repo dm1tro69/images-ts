@@ -3,7 +3,7 @@ import './App.css';
 import Intro from "./components/Intro";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "./store";
-import {getPhotos, setError} from "./store/actions/photosActions";
+import {getCuratedPhotos, getPhotos, setError} from "./store/actions/photosActions";
 import Masonry, {ResponsiveMasonry} from 'react-responsive-masonry'
 
 
@@ -15,6 +15,7 @@ const App:FC = () => {
     const [searchFor, setSearchFor] = useState('')
     const [page, setPage] = useState(1)
     const [title, setTitle] =  useState('Trending')
+    const [btnLoading, setBtnLoading] = useState(false)
     const searchPhotosHandler = (query: string) => {
         if (error) {
             setError('')
@@ -26,6 +27,16 @@ const App:FC = () => {
         dispatch(getPhotos(1, query, ()=> setLoading(false), () => setLoading(false)))
         setTitle(`Search Results For "${query}"`)
 
+    }
+
+    const loadMoreHandler = () => {
+         setBtnLoading(true)
+        setPage(prev => prev + 1)
+        if (mode === 'trending'){
+            dispatch(getCuratedPhotos(page + 1, () => setLoading(false), () => setBtnLoading(false)))
+        }else {
+            dispatch(getPhotos(page + 1, searchFor, () => setBtnLoading(false), () => setBtnLoading(false)))
+        }
     }
 
     let content = null
@@ -53,7 +64,7 @@ const App:FC = () => {
                 }
                 <div className={'is-flex is-justify-content-center py-6'}>
                     {((total_results > page * 10) || mode === 'trending')
-                    && <button className={'button is-primary is-large'}>Load More</button>}
+                    && <button onClick={loadMoreHandler} className={'button is-primary is-large'}>Load More</button>}
                 </div>
             </>
         )
